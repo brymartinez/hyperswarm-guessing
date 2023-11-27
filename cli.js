@@ -1,8 +1,10 @@
 const rl = require("readline");
 let yargs;
 
-const cli = {
-  ask: async (question) => {
+class CLI {
+  constructor() {}
+
+  async ask(question) {
     if (!yargs) {
       yargs = rl.createInterface({
         input: process.stdin,
@@ -12,7 +14,7 @@ const cli = {
     return new Promise((resolve) => {
       yargs.question(question, (input) => resolve(input));
     });
-  },
-};
+  }
+}
 
-module.exports = { cli };
+module.exports = { CLI };
