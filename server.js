@@ -23,15 +23,18 @@ class Server extends EventEmitter {
     this.word = await wordGenerator.generate(8);
     const filteredWord = this.word.replace(/[A-Za-z]/g, "_ ");
     this.wordArray = this.word.split("");
+    console.log("This is the word: ", this.word);
     this.broadcast(`\nWord is: ${filteredWord}`);
     this.handleGuesses = this.handleGuesses.bind(this);
     this.connection.on("data", this.handleGuesses);
   }
 
   async handleGuesses(data) {
-    const guess = data.toString();
-    console.log("Someone guessed: ", guess);
-    if (this.wordArray.includes(data.toString())) {
+    const jsonData = JSON.parse(data.toString());
+    const guess = jsonData.guess;
+    console.log(`${jsonData.guessor} guessed: ${jsonData.guess}`);
+
+    if (this.wordArray.includes(guess)) {
       this.broadcast(`${guess} is valid!`);
     } else {
       this.broadcast(`${guess} is incorrect`);
@@ -39,7 +42,7 @@ class Server extends EventEmitter {
   }
 
   broadcast(data) {
-    this.connection.write(data);
+    this.connection.write(JSON.stringify({ type: "update", message: data }));
   }
 }
 
