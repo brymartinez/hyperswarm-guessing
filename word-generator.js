@@ -1,6 +1,6 @@
 const fetch = require("node-fetch");
 
-class Word {
+class WordGenerator {
   constructor() {}
 
   async generate(numOfChars = 5) {
@@ -13,5 +13,5 @@ class Word {
 }
 
 module.exports = {
-  Word,
+  WordGenerator,
 };
