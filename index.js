@@ -1,9 +1,9 @@
 const { CLI } = require("./cli");
-const { Word } = require("./word");
+const { CHANNEL_NAME } = require("./constants");
 async function main() {
   const cli = new CLI();
-  const word = new Word();
-  await cli.ask(await word.generate(6));
+  const name = await cli.ask("What is your name? > ");
+  console.log(`\nWelcome to ${CHANNEL_NAME}, ${name}!`);
 }
 
 main();
