@@ -30,12 +30,20 @@ class Server extends EventEmitter {
       }
     } else {
       this.addPlayer(publicKey);
-      const [word, filteredWord] = await this.game.start();
-      console.log("This is the word: ", word.join(""));
-      this.broadcast(`\nWord is: ${filteredWord.join(" ")}`);
+      await this.initializeGame();
       this.handleGuesses = this.handleGuesses.bind(this);
       this.connection.on("data", this.handleGuesses);
     }
+  }
+
+  async initializeGame() {
+    const [word, _] = await this.game.start();
+    console.log("This is the word: ", word.join(""));
+    await this.getCurrentWordStatus();
+  }
+
+  async getCurrentWordStatus() {
+    this.broadcast(`Word is: ${this.game.filteredWord.join(" ")}`);
   }
 
   async handleGuesses(data) {
@@ -43,10 +51,20 @@ class Server extends EventEmitter {
     const guess = jsonData.guess;
     console.log(`${jsonData.guessor} guessed: ${jsonData.guess}`);
 
-    if (this.wordArray.includes(guess)) {
+    const isValid = await this.game.guess(guess);
+    if (isValid) {
       this.broadcast(`${guess} is valid!`);
+      if (this.game.isOver) {
+        this.broadcast(
+          `Congratulations! We have a winner!\nThe word is: ${this.game.word}`
+        );
+        await this.initializeGame();
+      } else {
+        await this.getCurrentWordStatus();
+      }
     } else {
       this.broadcast(`${guess} is incorrect`);
+      await this.getCurrentWordStatus();
     }
   }
 

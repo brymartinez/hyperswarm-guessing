@@ -11,7 +11,7 @@ async function main() {
   if (name === "admin") {
     const server = new Server();
   } else {
-    const client = new Client();
+    const client = new Client(name);
   }
 }
 
