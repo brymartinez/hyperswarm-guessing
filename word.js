@@ -1,3 +1,5 @@
+const fetch = require("node-fetch");
+
 class Word {
   constructor() {}
 
@@ -9,3 +11,7 @@ class Word {
     return word[0];
   }
 }
+
+module.exports = {
+  Word,
+};
