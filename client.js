@@ -1,11 +1,9 @@
-const EventEmitter = require("events");
 const Hyperswarm = require("hyperswarm");
 const { CHANNEL_NAME } = require("./constants");
 const { CLI } = require("./cli");
 
-class Client extends EventEmitter {
+class Client {
   constructor(name) {
-    super();
     this.name = name;
     this.client = new Hyperswarm();
     this.cli = new CLI();
@@ -24,14 +22,17 @@ class Client extends EventEmitter {
       const jsonData = JSON.parse(data.toString());
       if (jsonData.type === "update") {
         console.log("Server: ", jsonData.message);
-        const guess = await this.cli.ask("> ");
-        await this.sendToServer(guess);
+        process.stdout.write("> ");
       }
     });
+
+    await this.guess();
   }
 
-  async sendToServer(data) {
-    this.connection.write(JSON.stringify({ guess: data, guessor: this.name }));
+  async guess() {
+    const guess = await this.cli.ask("> ");
+    this.connection.write(JSON.stringify({ guess, guessor: this.name }));
+    await this.guess();
   }
 }
 

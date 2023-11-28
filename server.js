@@ -1,14 +1,13 @@
 const Hyperswarm = require("hyperswarm");
-const EventEmitter = require("events");
 const { CHANNEL_NAME } = require("./constants");
 const { Game } = require("./game");
 
-class Server extends EventEmitter {
+class Server {
   constructor() {
-    super();
     this.server = new Hyperswarm();
     this.players = new Map();
     this.game = new Game();
+    this.connections = [];
 
     this.server.join(Buffer.alloc(32).fill(CHANNEL_NAME), {
       server: true,
@@ -20,20 +19,20 @@ class Server extends EventEmitter {
   }
 
   async handleConnection(conn, info) {
-    this.connection = conn;
     const publicKey = info.publicKey.toString();
     if (this.players.size) {
-      if (this.players.has(publicKey)) {
-        // player exists, reconnect and transmit current game status
-      } else {
+      if (!this.players.has(publicKey)) {
         this.addPlayer(publicKey);
       }
+      await this.getCurrentWordStatus();
     } else {
       this.addPlayer(publicKey);
       await this.initializeGame();
       this.handleGuesses = this.handleGuesses.bind(this);
-      this.connection.on("data", this.handleGuesses);
+      conn.on("data", this.handleGuesses);
     }
+
+    this.connections.push(conn);
   }
 
   async initializeGame() {
@@ -47,6 +46,7 @@ class Server extends EventEmitter {
   }
 
   async handleGuesses(data) {
+    console.log("Got data!", data.toString());
     const jsonData = JSON.parse(data.toString());
     const guess = jsonData.guess;
     console.log(`${jsonData.guessor} guessed: ${jsonData.guess}`);
@@ -69,7 +69,9 @@ class Server extends EventEmitter {
   }
 
   broadcast(data) {
-    this.connection.write(JSON.stringify({ type: "update", message: data }));
+    for (const conn of this.connections) {
+      conn.write(JSON.stringify({ type: "update", message: data }));
+    }
   }
 
   addPlayer(publicKey) {
