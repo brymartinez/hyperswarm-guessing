@@ -23,16 +23,17 @@ class Server {
     if (this.players.size) {
       if (!this.players.has(publicKey)) {
         this.addPlayer(publicKey);
+        this.connections.push(conn);
       }
       await this.getCurrentWordStatus();
     } else {
       this.addPlayer(publicKey);
+      this.connections.push(conn);
       await this.initializeGame();
     }
 
     this.handleGuesses = this.handleGuesses.bind(this);
     conn.on("data", this.handleGuesses);
-    this.connections.push(conn);
   }
 
   async initializeGame() {
@@ -46,7 +47,6 @@ class Server {
   }
 
   async handleGuesses(data) {
-    console.log("Got data!", data.toString());
     const jsonData = JSON.parse(data.toString());
     const guess = jsonData.guess;
     console.log(`${jsonData.guessor} guessed: ${jsonData.guess}`);
@@ -56,7 +56,7 @@ class Server {
       this.broadcast(`${guess} is valid!`);
       if (this.game.isOver) {
         this.broadcast(
-          `Congratulations! We have a winner!\nThe word is: ${this.game.word}`
+          `Congratulations! ${jsonData.guessor} is the winner!\nThe word is: ${this.game.word}`
         );
         await this.initializeGame();
       } else {
