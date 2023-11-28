@@ -17,6 +17,7 @@ class Client {
   }
 
   async handleConnection(conn, info) {
+    console.log("Connected to server!\n");
     this.connection = conn;
     conn.on("data", async (data) => {
       const jsonData = JSON.parse(data.toString());

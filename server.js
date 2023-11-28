@@ -28,10 +28,10 @@ class Server {
     } else {
       this.addPlayer(publicKey);
       await this.initializeGame();
-      this.handleGuesses = this.handleGuesses.bind(this);
-      conn.on("data", this.handleGuesses);
     }
 
+    this.handleGuesses = this.handleGuesses.bind(this);
+    conn.on("data", this.handleGuesses);
     this.connections.push(conn);
   }
 
